@@ -2,14 +2,30 @@ import streamlit as st
 import pandas as pd
 import re
 
+import pandas as pd
+website_path = "https://histock.tw/stock/gift.aspx"
+valid_stocks = pd.read_html(website_path,attrs = {'id': 'CPHB1_gvToday'})[0]
+#最新公佈的id為CPHB1_gvToday，未過最後買進的id為CPHB1_gv，已過最後買進的的id為CPHB1_gvOld
 
 
 
-text_input  = st.text_input('請輸入股號，多個股號以空白間隔')
+pd.options.display.max_columns = None
+pd.options.display.max_rows = None
+
+sub_stocks = valid_stocks[["代號", "名稱","股價","股東會紀念品"]]
+
+new =sub_stocks.set_index("代號")
 
 
-query = text_input.split()
-query = list(map(int, query))
+check_list = []
+for i in range(len(sub_stocks)) :
+    check_list.append(sub_stocks.loc[i, "代號"])
+
+# text_input  = st.text_input('請輸入股號，多個股號以空白間隔')
+
+
+# query = text_input.split()
+# query = list(map(int, query))
 #產生所有持股的字典
 youren_owings = [1101,
  1102,
@@ -1855,7 +1871,7 @@ owings = dict(youren = youren_owings, pty = pty_owings, re = re_owings, cyc = cy
 own_situation = {}
 
 
-for q in query:
+for q in check_list:
     result_list = []
     for p,li in owings.items():
         if q in li:
@@ -1867,9 +1883,9 @@ for q in query:
 
 df = pd.DataFrame.from_dict(own_situation, orient='index',columns=['youren', 'pty', 're', 'cyc'])
 
+df2 = pd.concat([new, df], axis=1) # axis=0 as default
 
-
-st.dataframe(df)  # Same as st.write(df)
+st.dataframe(df2)  # Same as st.write(df)
 
 
 
