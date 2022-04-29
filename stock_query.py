@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-import re
+
 
 import pandas as pd
 website_path = "https://histock.tw/stock/gift.aspx"
@@ -15,6 +15,7 @@ pd.options.display.max_rows = None
 sub_stocks = valid_stocks[["代號", "名稱","股價","股東會紀念品"]]
 
 new =sub_stocks.set_index("代號")
+new["股東會紀念品"] = new["股東會紀念品"].str.replace("參考圖", "") #將最後的參考圖字樣去除
 
 
 check_list = []
@@ -1884,18 +1885,14 @@ for q in check_list:
 df = pd.DataFrame.from_dict(own_situation, orient='index',columns=['youren', 'pty', 're', 'cyc'])
 
 df2 = pd.concat([new, df], axis=1) # axis=0 as default
+df2 = df2.round()
 
-st.dataframe(df2)  # Same as st.write(df)
+st.dataframe(df2)
+
+ # Same as st.write(df)
 
 
 
 
 
 
-# youren_list = [2412, 2303]
-# query_string = st.text_input("請輸入要查詢的股號")
-# if query_string:
-#     if int(query_string) in youren_list:
-#         st.write(query_string,"在持有名單內")
-#     else:
-#         st.write(query_string,"不在持有名單內")
