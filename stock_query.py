@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 
-
+#5/2修改一下
 import pandas as pd
 website_path = "https://histock.tw/stock/gift.aspx"
 valid_stocks = pd.read_html(website_path,attrs = {'id': 'CPHB1_gvToday'})[0]
