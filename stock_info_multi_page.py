@@ -95,12 +95,14 @@ elif choose == "histock資料比對":
     # 顯示結果
     df = pd.DataFrame.from_dict(own_situation, orient='index',columns=['youren', 'pty', 're', 'cyc'])
 
-    st.write("資料如下")
-    df2 = pd.concat([info_detail, df], axis=1) # axis=0 as default
+    # #test for 
+    # st.write("資料如下")
+    # df2 = pd.concat([info_detail, df], axis=1) # axis=0 as default
 
 
     #st.table(df2)
-    st.dataframe(df2)
+    st.dataframe(df)
+    st.table(info_detail)
 
     # Same as st.write(df)
 
