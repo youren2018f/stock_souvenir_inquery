@@ -2,17 +2,28 @@
 import streamlit as st
 from streamlit_option_menu import option_menu
 import streamlit.components.v1 as html
-from  PIL import Image
-import numpy as np
-
 import pandas as pd
-from st_aggrid import AgGrid
-
 import io 
+
+#從google sheet 讀取資料，並產生所有持股的字典
+url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ0BwiihF-lw2kZo63LNIe8W11dKZfeaI8dciE3trlcnusbi7WAVxgXklDRaPQRpmvnrNrvYpnH6seb/pub?output=xlsx"
+@st.cache
+def get_list(name):
+    df = pd.read_excel(url,sheet_name = name,header=None)
+    return list(df[0])
+youren_owings = get_list("youren")
+pty_owings = get_list("pty")
+re_owings = get_list("re")
+cyc_owings = get_list("cyc")
+
+owings = dict(youren = youren_owings, pty = pty_owings, re = re_owings, cyc = cyc_owings) 
+
+
+
 
 
 with st.sidebar:
-    choose = option_menu("App Gallery", ["Search",  "Project Planning", "Python e-Course"],
+    choose = option_menu("App Gallery", ["庫存查詢",  "histock資料比對", "Python e-Course"],
                          icons=['search',  'kanban', 'book'],
                          menu_icon="app-indicator", default_index=0,
                          styles={
@@ -24,50 +35,75 @@ with st.sidebar:
     )
 
 
-if choose == "Search":
-    col1, col2 = st.columns( [0.8, 0.2])
-    with col1:               # To display the header text using css style
-        st.markdown(""" <style> .font {
-        font-size:35px ; font-family: 'Cooper Black'; color: #FF9633;} 
-        </style> """, unsafe_allow_html=True)
-        st.markdown('<p class="font">About the Creator</p>', unsafe_allow_html=True)    
+if choose == "庫存查詢":
+    #page1
+    text_input  = st.text_input('請輸入股號，多個股號以空白間隔')
+    query = text_input.split()
+
+    #query = input("輸入股號\n").split() #
+    query = list(map(int, query))
+
+    #產生比對結果的字典
+    own_situation = {}
+
+    for q in query:
+        result_list = []
+        for p,li in owings.items():
+            if q in li:
+                result_list.append(1)
+            else:
+                result_list.append(0)
+        own_situation[q] = result_list
+
+    if text_input:
+        df = pd.DataFrame.from_dict(own_situation, orient='index',columns=['youren', 'pty', 're', 'cyc'])
+        df
    
         
 
-elif choose == "Project Planning":
-    col1, col2 = st.columns( [0.8, 0.2])
-    with col1:               # To display the header text using css style
-        st.markdown(""" <style> .font {
-        font-size:35px ; font-family: 'Cooper Black'; color: #FF9633;} 
-        </style> """, unsafe_allow_html=True)
-        st.markdown('<p class="font">Upload your photo here...</p>', unsafe_allow_html=True)
-        
-    
-        
-    #Add file uploader to allow users to upload photos
-    uploaded_file = st.file_uploader("", type=['jpg','png','jpeg'])
-    if uploaded_file is not None:
-        image = Image.open(uploaded_file)
-        
-        col1, col2 = st.columns( [0.5, 0.5])
-        with col1:
-            st.markdown('<p style="text-align: center;">Before</p>',unsafe_allow_html=True)
-            st.image(image,width=300)  
+elif choose == "histock資料比對":
+    #從hisotck 獲取資料
+    website_path = "https://histock.tw/stock/gift.aspx"
+    @st.cache
+    def histock_info(attr):
+        valid_stocks = pd.read_html(website_path,attrs = {'id': attr})[0]
+        #最新公佈的id為CPHB1_gvToday，未過最後買進的id為CPHB1_gv，已過最後買進的的id為CPHB1_gvOld
+        sub_stocks = valid_stocks[["代號", "名稱","股價","股東會紀念品"]]
+        new =sub_stocks.set_index("代號")
+        new["股東會紀念品"] = new["股東會紀念品"].str.replace("參考圖", "") #將最後的參考圖字樣去除
+        return new
 
-        with col2:
-            st.markdown('<p style="text-align: center;">After</p>',unsafe_allow_html=True)
+
+    #從histock抓取要比對的股號清單
+    info_detail = histock_info("CPHB1_gvOld")
+    check_list = info_detail.index.values
+
+
+    #產生持有情形的字典
+    own_situation = {}
+
+    for q in check_list:
+        result_list = []
+        for p,li in owings.items():
+            if q in li:
+                result_list.append(1)
+            else:
+                result_list.append(0)
+        own_situation[q] = result_list
+                
+
+    # 顯示結果
+    df = pd.DataFrame.from_dict(own_situation, orient='index',columns=['youren', 'pty', 're', 'cyc'])
+
+    st.write("資料如下")
+    df2 = pd.concat([info_detail, df], axis=1) # axis=0 as default
+
+
+    #st.table(df2)
+    st.dataframe(df2)
+
+    # Same as st.write(df)
 
 
 elif choose == "Python e-Course":
-    st.markdown(""" <style> .font {
-    font-size:35px ; font-family: 'Cooper Black'; color: #FF9633;} 
-    </style> """, unsafe_allow_html=True)
-    st.markdown('<p class="font">Contact Form</p>', unsafe_allow_html=True)
-    with st.form(key='columns_in_form2',clear_on_submit=True): #set clear_on_submit=True so that the form will be reset/cleared once it's submitted
-        #st.write('Please help us improve!')
-        Name=st.text_input(label='Please Enter Your Name') #Collect user feedback
-        Email=st.text_input(label='Please Enter Email') #Collect user feedback
-        Message=st.text_input(label='Please Enter Your Message') #Collect user feedback
-        submitted = st.form_submit_button('Submit')
-        if submitted:
-            st.write('Thanks for your contacting us. We will respond to your questions or inquiries as soon as possible!')
+    pass #page3
