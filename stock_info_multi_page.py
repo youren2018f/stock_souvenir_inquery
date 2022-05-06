@@ -75,7 +75,7 @@ elif choose == "histock資料比對":
 
 
     #從histock抓取要比對的股號清單
-    info_detail = histock_info("CPHB1_gvOld")
+    info_detail = histock_info("CPHB1_gvToday")
     check_list = info_detail.index.values
 
 
@@ -95,14 +95,16 @@ elif choose == "histock資料比對":
     # 顯示結果
     df = pd.DataFrame.from_dict(own_situation, orient='index',columns=['youren', 'pty', 're', 'cyc'])
 
+
+    df_outer = info_detail.join(df, how='outer')
     # #test for 
     # st.write("資料如下")
     # df2 = pd.concat([info_detail, df], axis=1) # axis=0 as default
-
+    
 
     #st.table(df2)
-    st.dataframe(df)
-    st.table(info_detail)
+    st.dataframe(df_outer)
+
 
     # Same as st.write(df)
 
