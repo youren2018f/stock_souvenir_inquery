@@ -5,6 +5,7 @@ import streamlit.components.v1 as html
 import pandas as pd
 import io 
 
+
 #從google sheet 讀取資料，並產生所有持股的字典
 url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ0BwiihF-lw2kZo63LNIe8W11dKZfeaI8dciE3trlcnusbi7WAVxgXklDRaPQRpmvnrNrvYpnH6seb/pub?output=xlsx"
 @st.cache
@@ -36,6 +37,8 @@ with st.sidebar:
 
 
 if choose == "庫存查詢":
+    if st.button('庫存有變動，請按此按鈕'):
+     st.legacy_caching.clear_cache()
     #page1
     text_input  = st.text_input('請輸入股號，多個股號以空白間隔')
     query = text_input.split()
@@ -63,8 +66,9 @@ if choose == "庫存查詢":
 
 elif choose == "histock資料比對":
     #從hisotck 獲取資料
+    
     website_path = "https://histock.tw/stock/gift.aspx"
-    @st.cache
+    @st.experimental_singleton
     def histock_info(attr):
         valid_stocks = pd.read_html(website_path,attrs = {'id': attr})[0]
         #最新公佈的id為CPHB1_gvToday，未過最後買進的id為CPHB1_gv，已過最後買進的的id為CPHB1_gvOld
@@ -77,6 +81,8 @@ elif choose == "histock資料比對":
     #從histock抓取要比對的股號清單
     info_detail = histock_info("CPHB1_gvToday")
     check_list = info_detail.index.values
+    if st.button('從histock下載最新資料，請按此按鈕'):
+        st.experimental_singleton.clear()
 
 
     #產生持有情形的字典
