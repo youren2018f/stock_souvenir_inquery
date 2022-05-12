@@ -79,37 +79,121 @@ elif choose == "histock資料比對":
 
 
     #從histock抓取要比對的股號清單
-    info_detail = histock_info("CPHB1_gvToday")
-    check_list = info_detail.index.values
-    if st.button('從histock下載最新資料，請按此按鈕'):
-        st.experimental_singleton.clear()
 
+    #最新公告
+    try:
+        info_detail_new = histock_info("CPHB1_gvToday")
+        check_list_new = info_detail_new.index.values
+    except:
+        pass
+    #最後買進日未到期
+    try:
+        info_detail_now = histock_info("CPHB1_gv")
+        check_list_now = info_detail_now.index.values
+    except:
+        pass
+    #最後買進日已到期
+    try:
+        info_detail_old = histock_info("CPHB1_gvOld")
+        check_list_old = info_detail_old.index.values
+    except:
+        pass
+    # if st.button('從histock下載最新資料，請按此按鈕'):
+    #     st.experimental_singleton.clear()
 
+    option = st.selectbox(
+     '請選擇表格',
+     ('最新公告', '最後買進日未到期', '最後買進日已到期'))
     #產生持有情形的字典
-    own_situation = {}
+    if option == '最新公告':
+        try:
+            
+            own_situation = {}
 
-    for q in check_list:
-        result_list = []
-        for p,li in owings.items():
-            if q in li:
-                result_list.append(1)
-            else:
-                result_list.append(0)
-        own_situation[q] = result_list
-                
+            for q in check_list_new:
+                result_list = []
+                for p,li in owings.items():
+                    if q in li:
+                        result_list.append(1)
+                    else:
+                        result_list.append(0)
+                own_situation[q] = result_list
+                        
 
-    # 顯示結果
-    df = pd.DataFrame.from_dict(own_situation, orient='index',columns=['youren', 'pty', 're', 'cyc'])
+            # 顯示結果
+            df = pd.DataFrame.from_dict(own_situation, orient='index',columns=['youren', 'pty', 're', 'cyc'])
 
 
-    df_outer = info_detail.join(df, how='outer')
-    # #test for 
-    # st.write("資料如下")
-    # df2 = pd.concat([info_detail, df], axis=1) # axis=0 as default
-    
+            df_outer = info_detail_new.join(df, how='outer')
+            # #test for 
+            # st.write("資料如下")
+            # df2 = pd.concat([info_detail, df], axis=1) # axis=0 as default
+            
 
-    #st.table(df2)
-    st.dataframe(df_outer)
+            #st.table(df2)
+            st.table(df_outer)
+        except:
+            st.write("沒有最新公告")
+    if option == '最後買進日未到期':
+        try:
+
+            own_situation = {}
+
+            for q in check_list_now:
+                result_list = []
+                for p,li in owings.items():
+                    if q in li:
+                        result_list.append(1)
+                    else:
+                        result_list.append(0)
+                own_situation[q] = result_list
+                        
+
+            # 顯示結果
+            df = pd.DataFrame.from_dict(own_situation, orient='index',columns=['youren', 'pty', 're', 'cyc'])
+
+
+            df_outer = info_detail_now.join(df, how='outer')
+            st.table(df_outer)
+        except:
+            st.write("沒有最後買進日未到期的資料")
+        # #test for 
+        # st.write("資料如下")
+        # df2 = pd.concat([info_detail, df], axis=1) # axis=0 as default
+        
+
+        #st.table(df2)
+        
+    if option == '最後買進日已到期':
+        try:
+
+            own_situation = {}
+
+            for q in check_list_old:
+                result_list = []
+                for p,li in owings.items():
+                    if q in li:
+                        result_list.append(1)
+                    else:
+                        result_list.append(0)
+                own_situation[q] = result_list
+                        
+
+            # 顯示結果
+            df = pd.DataFrame.from_dict(own_situation, orient='index',columns=['youren', 'pty', 're', 'cyc'])
+
+
+            df_outer = info_detail_old.join(df, how='outer')
+            # #test for 
+            # st.write("資料如下")
+            # df2 = pd.concat([info_detail, df], axis=1) # axis=0 as default
+            
+
+            #st.table(df2)
+            st.table(df_outer)
+        except:
+            st.write("沒有最後買進日已到期的資料")
+
 
 
     # Same as st.write(df)
