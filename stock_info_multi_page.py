@@ -24,7 +24,7 @@ owings = dict(youren = youren_owings, pty = pty_owings, re = re_owings, cyc = cy
 
 
 with st.sidebar:
-    choose = option_menu("App Gallery", ["庫存查詢",  "histock資料比對", "Python e-Course"],
+    choose = option_menu("App Gallery", ["庫存查詢",  "histock資料比對qq", "Python e-Course"],
                          icons=['search',  'kanban', 'book'],
                          menu_icon="app-indicator", default_index=0,
                          styles={
@@ -64,7 +64,7 @@ if choose == "庫存查詢":
    
         
 
-elif choose == "histock資料比對==":
+elif choose == "histock資料比對qq":
     #從hisotck 獲取資料
     
     website_path = "https://histock.tw/stock/gift.aspx"
