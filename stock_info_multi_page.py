@@ -64,11 +64,11 @@ if choose == "庫存查詢":
    
         
 
-elif choose == "histock資料比對":
+elif choose == "histock資料比對==":
     #從hisotck 獲取資料
     
     website_path = "https://histock.tw/stock/gift.aspx"
-    @st.experimental_singleton
+    @st.cache_resource
     def histock_info(attr):
         valid_stocks = pd.read_html(website_path,attrs = {'id': attr})[0]
         #最新公佈的id為CPHB1_gvToday，未過最後買進的id為CPHB1_gv，已過最後買進的的id為CPHB1_gvOld
