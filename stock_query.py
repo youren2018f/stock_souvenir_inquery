@@ -6,17 +6,16 @@ pd.options.display.max_rows = None
 
 
 #從google sheet 讀取資料，並產生所有持股的字典
-url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ0BwiihF-lw2kZo63LNIe8W11dKZfeaI8dciE3trlcnusbi7WAVxgXklDRaPQRpmvnrNrvYpnH6seb/pub?output=xlsx"
+url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQL4Pg0pLF4gg23UHyC4COsat3NOyfFYbnZoenJD6JX-hith6CKZWlEdM_qZrfogYVOqF0XGrcZmVHp/pub?output=xlsx"
 @st.cache
 def get_list(name):
     df = pd.read_excel(url,sheet_name = name,header=None)
     return list(df[0])
 youren_owings = get_list("youren")
 pty_owings = get_list("pty")
-re_owings = get_list("re")
 cyc_owings = get_list("cyc")
 
-owings = dict(youren = youren_owings, pty = pty_owings, re = re_owings, cyc = cyc_owings) 
+owings = dict(youren = youren_owings, pty = pty_owings, cyc = cyc_owings) 
 
 
 
@@ -52,7 +51,7 @@ for q in check_list:
             
 
 # 顯示結果
-df = pd.DataFrame.from_dict(own_situation, orient='index',columns=['youren', 'pty', 're', 'cyc'])
+df = pd.DataFrame.from_dict(own_situation, orient='index',columns=['youren', 'pty', 'cyc'])
 
 st.write("資料如下")
 df2 = pd.concat([info_detail, df], axis=1) # axis=0 as default
