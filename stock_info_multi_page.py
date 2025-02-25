@@ -21,7 +21,7 @@ cyc_owings = get_list("cyc")
 owings = dict(youren = youren_owings, pty = pty_owings, cyc = cyc_owings) 
 
 with st.sidebar:
-    choose = option_menu("App Gallery", ["庫存查詢",  "histock資料比對qq", "RachlMei Excel"],
+    choose = option_menu("App Gallery", ["庫存查詢",  "histock資料比對", "RachlMei Excel"],
                          icons=['search',  'kanban', 'book'],
                          menu_icon="app-indicator", default_index=0,
                          styles={
@@ -57,7 +57,7 @@ if choose == "庫存查詢":
         df = pd.DataFrame.from_dict(own_situation, orient='index',columns=['youren', 'pty', 'cyc'])
         df
 
-elif choose == "histock資料比對qq":
+elif choose == "histock資料比對":
     #從hisotck 獲取資料
     
     website_path = "https://histock.tw/stock/gift.aspx"
@@ -173,9 +173,9 @@ elif choose == "RachlMei Excel":
         soup = BeautifulSoup(response.text, "html.parser")
 
         # 定位到目標 div
-        div = soup.find("div", id="964277633")
+        div = soup.find("div", id="122218471")
         if not div:
-            print("找不到 id 為 964277633 的 div")
+            print("找不到 id 為 122218471 的 div")
             exit()
 
         # 在該 div 內尋找 tbody
@@ -223,14 +223,14 @@ elif choose == "RachlMei Excel":
             cells = [td.get_text(strip=True) for td in row.find_all("td")]
             # 確保此列資料足夠長（至少要有15個 cell）
             if len(cells) >= 15:
-                # 只取出索引 0, 1, 2, 14 的元素
-                filtered = [cells[0], cells[1], cells[2], cells[14]]
+                # 只取出索引 0, 1, 2, 3, 14 的元素
+                filtered = [cells[0], cells[1], cells[2],cells[3], cells[14]]
                 table_data.append(filtered)
             else:
                 print("該列資料不足，跳過:", cells)
 
         # 定義欄位名稱
-        columns = ["代號", "名稱", "股東會紀念品", "去年資料"]
+        columns = ["代號", "名稱", "股東會紀念品","股價", "去年發放的紀念品"]
 
         # 建立 DataFrame
         df_excel = pd.DataFrame(table_data, columns=columns)
@@ -255,6 +255,7 @@ elif choose == "RachlMei Excel":
             df = pd.DataFrame.from_dict(own_situation, orient='index',columns=['youren', 'pty', 'cyc'])
 
             df_outer = df_excel.join(df, how='outer')
-            st.table(df_outer)
+            # st.table(df_outer)
+            st.dataframe(df_outer, use_container_width=True)
         except:
             st.write("沒有excel的資料")    
