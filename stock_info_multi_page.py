@@ -5,6 +5,7 @@ import pandas as pd
 import io
 import requests
 from bs4 import BeautifulSoup
+from io import StringIO
 
 #從google sheet 讀取資料，並產生所有持股的字典
 url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQL4Pg0pLF4gg23UHyC4COsat3NOyfFYbnZoenJD6JX-hith6CKZWlEdM_qZrfogYVOqF0XGrcZmVHp/pub?output=xlsx"
@@ -64,12 +65,28 @@ elif choose == "histock資料比對":
     
     @st.cache_resource
     def histock_info(attr):
-        valid_stocks = pd.read_html(website_path,attrs = {'id': attr})[0]
-        #最新公佈的id為CPHB1_gvToday，未過最後買進的id為CPHB1_gv，已過最後買進的的id為CPHB1_gvOld
-        sub_stocks = valid_stocks[["代號", "名稱","股價","股東會紀念品"]]
-        new =sub_stocks.set_index("代號")
-        new["股東會紀念品"] = new["股東會紀念品"].str.replace("參考圖", "") #將最後的參考圖字樣去除
-        return new
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Referer": "https://histock.tw/",
+            "Accept-Language": "zh-TW,zh;q=0.9"
+        }
+
+        response = requests.get(website_path, headers=headers)
+        response.raise_for_status()  # 確保沒有 403 或 404 錯誤
+
+        # 顯示前 1000 個字元，檢查 Cloud 環境是否正確抓取 HTML
+        st.write(response.text[:1000])
+
+        soup = BeautifulSoup(response.text, "html.parser")
+        table = soup.find("table", {"id": attr})
+
+        if not table:
+            st.write(f"無法找到 id 為 {attr} 的表格")
+            return pd.DataFrame()
+
+        df = pd.read_html(str(table))[0]
+        return df
+
 
     #從histock抓取要比對的股號清單
 
@@ -78,19 +95,19 @@ elif choose == "histock資料比對":
         info_detail_new = histock_info("CPHB1_gvToday")
         check_list_new = info_detail_new.index.values
     except:
-        pass
+        st.write(histock_info("CPHB1_gvToday"))
     #最後買進日未到期
     try:
         info_detail_now = histock_info("CPHB1_gv")
         check_list_now = info_detail_now.index.values
     except:
-        pass
+        st.write(histock_info("CPHB1_gv"))
     #最後買進日已到期
     try:
         info_detail_old = histock_info("CPHB1_gvOld")
         check_list_old = info_detail_old.index.values
     except:
-        pass
+        st.write(histock_info("CPHB1_gvOld"))
 
     
     option = st.selectbox(
@@ -117,7 +134,7 @@ elif choose == "histock資料比對":
             df_outer = info_detail_new.join(df, how='outer')
             st.table(df_outer)
         except:
-            st.write("沒有最新公告")
+            st.write(histock_info("CPHB1_gvToday"))
     
     if option == '最後買進日未到期':
         try:
@@ -138,7 +155,7 @@ elif choose == "histock資料比對":
             df_outer = info_detail_now.join(df, how='outer')
             st.table(df_outer)
         except:
-            st.write("沒有最後買進日未到期的資料")
+            st.write(histock_info("CPHB1_gv"))
     
     if option == '最後買進日已到期':
         try:
@@ -159,7 +176,7 @@ elif choose == "histock資料比對":
             df_outer = info_detail_old.join(df, how='outer')
             st.table(df_outer)
         except:
-            st.write("沒有最後買進日已到期的資料")
+            st.write(histock_info("CPHB1_gvOld"))
 
 elif choose == "RachlMei Excel":
 # 設定網址與 headers（模擬瀏覽器）
@@ -239,23 +256,48 @@ elif choose == "RachlMei Excel":
         df_excel.index = df_excel.index.astype(int)
         
         check_list_excel = [int(x) for x in df_excel.index.values]
-        try:
-            own_situation = {}
+        
+        own_situation = {}
 
-            for q in check_list_excel:
-                result_list = []
-                for p,li in owings.items():
-                    if q in li:
-                        result_list.append(1)
-                    else:
-                        result_list.append(0)
-                own_situation[q] = result_list
+        for q in check_list_excel:
+            result_list = []
+            for p,li in owings.items():
+                if q in li:
+                    result_list.append(1)
+                else:
+                    result_list.append(0)
+            own_situation[q] = result_list
 
-            # 顯示結果
-            df = pd.DataFrame.from_dict(own_situation, orient='index',columns=['youren', 'pty', 'cyc'])
+        # 顯示結果
+        df = pd.DataFrame.from_dict(own_situation, orient='index',columns=['youren', 'pty', 'cyc'])
 
-            df_outer = df_excel.join(df, how='outer')
-            # st.table(df_outer)
-            st.dataframe(df_outer, use_container_width=True)
-        except:
-            st.write("沒有excel的資料")    
+        df_outer = df_excel.join(df, how='outer')
+        df_outer = df_outer.reset_index().rename(columns={'index': '股號'})
+        # st.table(df_outer)
+        #st.dataframe(df_outer, use_container_width=True)
+        print(df_outer)
+        def stockhouse():
+            url = "https://stockhouse.com.tw/dantime.html"
+            response = requests.get(url)
+            soup = BeautifulSoup(response.content, 'html.parser')
+            table = soup.find('table')
+            all_rows = table.find_all('tr')
+            headers = [header.text.strip() for header in all_rows[0].find_all(['th', 'td'])]
+            rows = []
+            for row in all_rows[1:]:
+                cells = row.find_all('td')
+                row_data = [cell.text.strip() for cell in cells]
+                rows.append(row_data)
+            df = pd.DataFrame(rows, columns=headers)
+            df = df[['股號', '紀念品', '收購價', '委託條件']]
+            return df
+        
+        ##### 合併S
+        df_stockhouse = stockhouse()
+        ##轉為同樣的型態
+        df_outer['股號'] = df_outer['股號'].astype(str)
+        df_stockhouse['股號'] = df_stockhouse['股號'].astype(str)
+        ###
+        merged_df = pd.merge(df_outer, df_stockhouse, left_on='股號', right_on='股號', how='left')
+        st.dataframe(merged_df, use_container_width=True)
+
