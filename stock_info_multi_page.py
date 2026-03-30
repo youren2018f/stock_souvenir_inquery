@@ -61,7 +61,7 @@ elif choose == "histock資料比對":
 elif choose == "RachlMei Excel":
     st.subheader("RachlMei 紀念品清單 (自動同步)")
     # 使用 CSV 導出格式，這是處理繁體中文最穩定的方式
-    gs_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTG7Rb_wjFaHq1Z_ExcEN5EMZPR4-iFvdr5xKvVH-hJORNx6WhCZoijIFYuDGXkKIKqf4WjcBhQ_TYR/pub?gid=122218471&single=true&output=csv"
+    gs_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS8Cm_fNNmhJqCyB1M1hGqc0wtJqXbNwFqtznBmHOQ_2MaQHNpDbvgUcwtGNkhnDyIJaKHDKAkFAvf-/pub?gid=122218471&single=true&output=csv"
     
     try:
         # 1. 抓取 Google Sheet 資料
